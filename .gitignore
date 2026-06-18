@@ -216,3 +216,10 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+# Progetto carburanti
+carburanti.db
+log.txt
+andamento_*.png
+.idea/
+.windsurf/
