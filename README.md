@@ -44,9 +44,35 @@ ANNI = range(2015, date.today().year + 1)
 
 Il backfill è idempotente: rilanciarlo non crea duplicati.
 
+## Sync verso Turso (cloud)
+
+`sync_turso.py` pusha incrementalmente gli eventi nuovi su un DB Turso (SQLite-as-a-service) per renderli accessibili dall'app Android.
+
+Configurazione: crea `/home/pi/carburanti/.env` con:
+
+```
+TURSO_DATABASE_URL=libsql://...
+TURSO_AUTH_TOKEN=...   # token di scrittura
+```
+
+Permessi: `chmod 600 .env`.
+
+Run manuale:
+```bash
+python3 sync_turso.py
+```
+
+Output:
+```
+Upsert impianti: <N>
+Spinti <M> eventi su Turso (watermark id=<X>)
+```
+
+Idempotente: il watermark in `sync_state` impedisce duplicati.
+
 ## Crontab
 
-Esegui il job giornaliero alle 13:00 (l'orario non è critico: lo script è idempotente):
+Esegui giornaliero alle 13:00 (raccolta + sync):
 
 ```bash
 crontab -e
@@ -55,8 +81,10 @@ crontab -e
 Aggiungi questa riga (sostituisci `/home/pi/carburanti` con il percorso reale):
 
 ```
-0 13 * * * cd /home/pi/carburanti && /usr/bin/python3 raccogli.py >> log.txt 2>&1
+0 13 * * * cd /home/pi/carburanti && /usr/bin/python3 raccogli.py >> log.txt 2>&1 && /usr/bin/python3 sync_turso.py >> log.txt 2>&1
 ```
+
+Il sync parte solo se la raccolta è andata a buon fine (`&&`).
 
 Verifica con:
 ```bash
@@ -66,7 +94,8 @@ crontab -l
 ## Log e DB
 
 - `log.txt` - stdout/stderr del job giornaliero (append)
-- `carburanti.db` - database SQLite (nella cartella del progetto)
+- `carburanti.db` - database SQLite locale (sul Pi)
+- Turso - copia cloud, accessibile via API HTTP con token di sola lettura per l'app
 
 ## Query CLI
 

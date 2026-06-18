@@ -224,3 +224,4 @@ andamento_*.png
 .idea/
 .windsurf/
 .turso_tokens
+.env
