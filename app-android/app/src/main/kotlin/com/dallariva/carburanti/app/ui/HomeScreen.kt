@@ -25,6 +25,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import com.dallariva.carburanti.app.DEFAULT_LOCATION
 import com.dallariva.carburanti.app.FuelViewModel
+import com.dallariva.carburanti.app.effectiveSelf
 import kotlinx.coroutines.launch
 
 /**
@@ -63,8 +64,11 @@ fun HomeScreen(
         topBar = {
             FuelSelectorBar(
                 carburante = state.carburante,
-                self = state.self,
-                onSelect = { fuel, self -> vm.selectFuel(fuel, self) },
+                self = effectiveSelf(state.carburante, state.self),
+                sortBy = state.sortBy,
+                onSelectFuel = { fuel -> vm.selectFuel(fuel, state.self) },
+                onSelectMode = { selfMode -> vm.selectFuel(state.carburante, selfMode) },
+                onSelectSort = { sort -> vm.setSort(sort) },
             )
         }
     ) { padding ->

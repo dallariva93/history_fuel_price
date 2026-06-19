@@ -26,6 +26,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.dallariva.carburanti.app.HomeUiState
+import com.dallariva.carburanti.app.effectiveSelf
 
 /**
  * Lista dei distributori piu' economici. Ogni riga: pallino colorato per prezzo, nome/comune,
@@ -51,7 +52,7 @@ fun StationList(
 
     if (!state.loading && state.stazioni.isEmpty()) {
         Box(Modifier.fillMaxSize().padding(24.dp), contentAlignment = Alignment.Center) {
-            Text("Nessun distributore con ${state.carburante} (${if (state.self) "self" else "servito"}) nei dintorni.")
+            Text("Nessun distributore con ${state.carburante} (${if (effectiveSelf(state.carburante, state.self)) "self" else "servito"}) nei dintorni.")
         }
         return
     }
