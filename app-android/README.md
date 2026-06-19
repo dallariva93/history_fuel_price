@@ -53,6 +53,10 @@ Il modulo `:app` mostra:
 - **Mappa** MapLibre con un marker per distributore, colorato per prezzo (verde = economico,
   rosso = caro). Tap su un marker o su una riga -> **dettaglio** con il grafico dello storico.
 
+La mappa usa di default tile raster **OpenStreetMap** (niente API key). Per cambiare provider
+imposta `MAP_TILES_URL` (template XYZ `{z}/{x}/{y}`) oppure, per uno stile vettoriale completo,
+`MAP_STYLE_URL` (es. MapTiler con chiave) in `local.properties`. Vedi `local.properties.example`.
+
 Tutti i dati passano dal `FuelRepository` di `:data`: la UI non parla mai direttamente con Turso.
 
 ### Configurazione (token di sola lettura)

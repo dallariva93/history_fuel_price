@@ -29,11 +29,14 @@ android {
         // Endpoint e token di sola lettura -> BuildConfig (non hardcoded nel sorgente).
         buildConfigField("String", "TURSO_DATABASE_URL", "\"${cfg("TURSO_DATABASE_URL")}\"")
         buildConfigField("String", "TURSO_RO_TOKEN", "\"${cfg("TURSO_RO_TOKEN")}\"")
-        // Stile mappa MapLibre: default demotiles (gratuito, niente API key).
+        // Mappa: di default uno stile raster costruito dai tile OpenStreetMap (niente API key).
+        // Per usare uno stile vettoriale completo (es. MapTiler con chiave), valorizza MAP_STYLE_URL:
+        // se non vuoto ha la precedenza su MAP_TILES_URL.
         buildConfigField(
-            "String", "MAP_STYLE_URL",
-            "\"${cfg("MAP_STYLE_URL", "https://demotiles.maplibre.org/style.json")}\""
+            "String", "MAP_TILES_URL",
+            "\"${cfg("MAP_TILES_URL", "https://tile.openstreetmap.org/{z}/{x}/{y}.png")}\""
         )
+        buildConfigField("String", "MAP_STYLE_URL", "\"${cfg("MAP_STYLE_URL")}\"")
     }
 
     buildTypes {
