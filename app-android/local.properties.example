@@ -1,0 +1,14 @@
+# Template di configurazione locale per il modulo :app.
+# Copia questo file in `local.properties` (git-ignored) e compila i valori.
+# Android Studio aggiunge automaticamente anche `sdk.dir` a local.properties.
+#
+# NON committare local.properties: contiene il token (anche se di sola lettura su open data).
+
+# Endpoint del DB Turso (formato libsql:// o https://)
+TURSO_DATABASE_URL=libsql://carburanti-xxxx.aws-eu-west-1.turso.io
+
+# Token Turso di SOLA LETTURA (creato in Fase B)
+TURSO_RO_TOKEN=eyJ...
+
+# Opzionale: stile mappa MapLibre. Default = demotiles (gratuito, senza API key).
+# MAP_STYLE_URL=https://demotiles.maplibre.org/style.json

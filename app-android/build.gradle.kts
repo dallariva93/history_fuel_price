@@ -1,2 +1,8 @@
-// Root build file: nessun plugin a livello root per ora.
-// I moduli figli applicano i propri plugin (Kotlin JVM, in futuro Android).
+// Root build file: dichiara i plugin Android/Kotlin a livello root (apply false),
+// cosi' i moduli figli li applicano senza ripetere la versione.
+// Il modulo :data resta un puro Kotlin/JVM (vedi data/build.gradle.kts) ed e' usabile
+// come dipendenza da :app (modulo Android) senza conversioni.
+plugins {
+    id("com.android.application") version "8.5.2" apply false
+    id("org.jetbrains.kotlin.android") version "1.9.24" apply false
+}

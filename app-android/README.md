@@ -4,8 +4,8 @@ Progetto multi-modulo per l'app Android che legge i prezzi carburante da Turso.
 
 ## Moduli
 
-- `:data` — modelli e Repository (lettura da Turso). Per ora Kotlin/JVM puro con `HttpFuelRepository`.
-- `:app` — UI telefono (Compose). Da aggiungere nello STEP C2.
+- `:data` — modelli e Repository (lettura da Turso). Kotlin/JVM puro con `HttpFuelRepository`.
+- `:app` — UI telefono (Compose): lista + mappa MapLibre + dettaglio con grafico storico.
 - `:car` — superficie Android Auto (Car App Library). Da aggiungere nello STEP C3.
 
 ## Strategia data layer
@@ -44,3 +44,38 @@ Argomenti personalizzati:
 ./gradlew :data:run --args="46.0664 11.1257 15 Benzina true"
 # lat lon raggioKm carburante self
 ```
+
+## App telefono (STEP C2)
+
+Il modulo `:app` mostra:
+- **Lista** dei distributori piu' economici vicini alla posizione attuale (default GPL self),
+  con pallino colorato per prezzo, comune, distanza e data.
+- **Mappa** MapLibre con un marker per distributore, colorato per prezzo (verde = economico,
+  rosso = caro). Tap su un marker o su una riga -> **dettaglio** con il grafico dello storico.
+
+Tutti i dati passano dal `FuelRepository` di `:data`: la UI non parla mai direttamente con Turso.
+
+### Configurazione (token di sola lettura)
+
+URL e token NON sono nel sorgente versionato: si leggono da `local.properties` (git-ignored) e
+finiscono in `BuildConfig`. Setup:
+
+```bash
+cp local.properties.example local.properties
+# poi compila TURSO_DATABASE_URL e TURSO_RO_TOKEN
+```
+
+(Android Studio aggiunge anche `sdk.dir` allo stesso file al primo sync.)
+
+### Build e run su device/emulatore
+
+1. Apri `app-android/` in Android Studio e lascia completare il Gradle sync.
+2. Collega un dispositivo reale (sideload via USB) o avvia un emulatore con Google Play.
+3. Run della configurazione **app**, oppure da terminale:
+   ```
+   ./gradlew :app:installDebug
+   ```
+4. All'avvio l'app chiede il permesso di posizione; se negato usa Trento come fallback.
+
+Verifica accettazione: lista e mappa popolate con dati reali da Turso; tap su un distributore
+apre il dettaglio con la serie storica.
