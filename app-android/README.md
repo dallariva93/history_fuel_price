@@ -56,6 +56,11 @@ Il modulo `:app` mostra:
 - **Mappa** MapLibre con un marker per distributore, colorato per prezzo (verde = economico,
   rosso = caro) e il pallino della **posizione attuale**. Tap su un marker o su una riga ->
   **dettaglio** con il grafico dello storico.
+- **Impianti possibilmente chiusi**: MIMIT non espone uno stato di chiusura, ma gli impianti chiusi
+  spariscono dal registro attivo. L'app usa `impianti.updated` (ultimo run in cui l'impianto era nel
+  registro) e segnala con un badge quelli fermi da >= 14 giorni rispetto all'ultimo run del dataset
+  (non rispetto a "oggi", per evitare falsi positivi da pipeline ferma). E' un'euristica indicativa,
+  non una certezza.
 
 La mappa usa di default tile raster **OpenStreetMap** (niente API key). Per cambiare provider
 imposta `MAP_TILES_URL` (template XYZ `{z}/{x}/{y}`) oppure, per uno stile vettoriale completo,

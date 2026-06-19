@@ -19,6 +19,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.dallariva.carburanti.app.FuelViewModel
+import com.dallariva.carburanti.data.StatoImpianto
 
 /**
  * Dettaglio impianto: header (nome, comune, ultimo prezzo) + grafico dello storico.
@@ -66,6 +67,21 @@ fun DetailScreen(
                         .format(station.prezzo.prezzo),
                     style = MaterialTheme.typography.titleMedium,
                 )
+                station.giorniSenzaAggiornamento?.let { giorni ->
+                    Text(
+                        "Ultimo aggiornamento registro: $giorni giorni fa",
+                        style = MaterialTheme.typography.labelMedium,
+                    )
+                }
+                if (station.stato == StatoImpianto.NON_AGGIORNATO) {
+                    Text(
+                        "Questo impianto potrebbe essere chiuso: non compare nel registro MIMIT " +
+                            "degli impianti attivi da ${station.giorniSenzaAggiornamento} giorni. " +
+                            "Dato indicativo, non garantito.",
+                        style = MaterialTheme.typography.labelMedium,
+                        color = MaterialTheme.colorScheme.error,
+                    )
+                }
             }
 
             Text("Andamento storico", style = MaterialTheme.typography.titleSmall)

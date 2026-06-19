@@ -15,6 +15,7 @@ import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import com.dallariva.carburanti.app.BuildConfig
 import com.dallariva.carburanti.data.DistributoreConPrezzo
+import com.dallariva.carburanti.data.StatoImpianto
 import com.google.gson.JsonPrimitive
 import kotlinx.coroutines.suspendCancellableCoroutine
 import org.maplibre.android.camera.CameraUpdateFactory
@@ -94,10 +95,12 @@ fun FuelMap(
         val max = prezzi.maxOrNull() ?: 0.0
 
         stazioni.forEach { s ->
+            val stale = s.stato == StatoImpianto.NON_AGGIORNATO
             cm.create(
                 CircleOptions()
                     .withLatLng(LatLng(s.distributore.lat, s.distributore.lon))
-                    .withCircleColor(priceColorHex(s.prezzo.prezzo, min, max))
+                    .withCircleColor(if (stale) "#9E9E9E" else priceColorHex(s.prezzo.prezzo, min, max))
+                    .withCircleOpacity(if (stale) 0.5f else 1f)
                     .withCircleRadius(9f)
                     .withCircleStrokeColor("#FFFFFF")
                     .withCircleStrokeWidth(1.5f)

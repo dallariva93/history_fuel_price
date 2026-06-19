@@ -17,11 +17,20 @@ import kotlinx.serialization.json.putJsonArray
 import kotlinx.serialization.json.putJsonObject
 import java.net.HttpURLConnection
 import java.net.URL
+import java.time.LocalDate
+import java.time.temporal.ChronoUnit
 import kotlin.math.asin
 import kotlin.math.cos
 import kotlin.math.pow
 import kotlin.math.sin
 import kotlin.math.sqrt
+
+/**
+ * Soglia in giorni oltre la quale un impianto, assente dal registro attivo, viene segnalato come
+ * [StatoImpianto.NON_AGGIORNATO] ("possibilmente chiuso"). Misurata rispetto all'ultimo run noto
+ * del dataset, non rispetto a oggi.
+ */
+const val STALE_DAYS = 14
 
 /**
  * Implementazione di [FuelRepository] basata sull'API HTTP Hrana di Turso (`/v2/pipeline`).
@@ -66,7 +75,7 @@ class HttpFuelRepository(
               GROUP BY impianto_id, carburante, self
             )
             SELECT i.id, i.nome, i.gestore, i.bandiera, i.tipo, i.indirizzo,
-                   i.comune, i.provincia, i.lat, i.lon,
+                   i.comune, i.provincia, i.lat, i.lon, i.updated,
                    p.carburante, p.self, p.prezzo, p.dt_comu
             FROM impianti i
             JOIN latest l ON l.impianto_id = i.id
@@ -88,6 +97,11 @@ class HttpFuelRepository(
             )
         )
 
+        // Data dell'ultimo run noto del dataset = MAX(updated) tra le righe restituite.
+        // Misurare la staleness rispetto a questo (non a "oggi") evita falsi positivi quando la
+        // pipeline resta ferma qualche giorno: tutti gli impianti condividono lo stesso max.
+        val datasetMax = rows.mapNotNull { it[10].asString() }.maxOrNull()
+
         // Refinement haversine + sort per prezzo crescente.
         rows.mapNotNull { r ->
             val d = Distributore(
@@ -101,15 +115,21 @@ class HttpFuelRepository(
                 provincia = r[7].asString().orEmpty(),
                 lat = r[8].asDouble(),
                 lon = r[9].asDouble(),
+                updated = r[10].asString(),
             )
             val p = Prezzo(
-                carburante = r[10].asString().orEmpty(),
-                self = r[11].asLong() == 1L,
-                prezzo = r[12].asDouble(),
-                dtComu = r[13].asString().orEmpty(),
+                carburante = r[11].asString().orEmpty(),
+                self = r[12].asLong() == 1L,
+                prezzo = r[13].asDouble(),
+                dtComu = r[14].asString().orEmpty(),
             )
             val dist = haversineKm(lat, lon, d.lat, d.lon)
-            if (dist <= raggioKm) DistributoreConPrezzo(d, p, dist) else null
+            if (dist > raggioKm) return@mapNotNull null
+
+            val giorni = daysBetween(d.updated, datasetMax)
+            val stato = if (giorni != null && giorni >= STALE_DAYS)
+                StatoImpianto.NON_AGGIORNATO else StatoImpianto.ATTIVO
+            DistributoreConPrezzo(d, p, dist, giorni, stato)
         }.sortedBy { it.prezzo.prezzo }
     }
 
@@ -233,6 +253,19 @@ class HttpFuelRepository(
         val obj = jsonObject
         val v = obj["value"] ?: error("Atteso valore non null in $obj")
         return v.jsonPrimitive.content.toDouble()
+    }
+
+    /**
+     * Giorni tra [a] e [b] (date ISO `YYYY-MM-DD`), o null se una delle due manca o non e'
+     * parsabile. Difensivo: date assenti/malformate -> null -> impianto trattato come ATTIVO.
+     */
+    private fun daysBetween(a: String?, b: String?): Int? {
+        if (a == null || b == null) return null
+        return try {
+            ChronoUnit.DAYS.between(LocalDate.parse(a), LocalDate.parse(b)).toInt()
+        } catch (_: Exception) {
+            null
+        }
     }
 
     private fun haversineKm(lat1: Double, lon1: Double, lat2: Double, lon2: Double): Double {

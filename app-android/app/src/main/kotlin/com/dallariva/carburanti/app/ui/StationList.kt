@@ -22,11 +22,13 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.dallariva.carburanti.app.HomeUiState
 import com.dallariva.carburanti.app.effectiveSelf
+import com.dallariva.carburanti.data.StatoImpianto
 
 /**
  * Lista dei distributori piu' economici. Ogni riga: pallino colorato per prezzo, nome/comune,
@@ -67,13 +69,17 @@ fun StationList(
         verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
         items(state.stazioni, key = { it.distributore.id }) { item ->
+            val nonAggiornato = item.stato == StatoImpianto.NON_AGGIORNATO
             Card(
                 modifier = Modifier
                     .fillMaxWidth()
                     .clickable { onStationClick(item.distributore.id) }
             ) {
                 Row(
-                    modifier = Modifier.fillMaxWidth().padding(12.dp),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(12.dp)
+                        .alpha(if (nonAggiornato) 0.6f else 1f),
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
                     Box(
@@ -97,6 +103,13 @@ fun StationList(
                             "agg. ${item.prezzo.dtComu}",
                             style = MaterialTheme.typography.labelSmall,
                         )
+                        if (nonAggiornato) {
+                            Text(
+                                "Possibilmente chiuso · registro fermo da ${item.giorniSenzaAggiornamento}g",
+                                style = MaterialTheme.typography.labelSmall,
+                                color = MaterialTheme.colorScheme.error,
+                            )
+                        }
                     }
                     Text(
                         "%.3f €".format(item.prezzo.prezzo),
