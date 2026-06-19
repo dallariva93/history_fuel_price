@@ -1,0 +1,4 @@
+<resources>
+    <!-- Tema base "vuoto": Compose disegna tutta la UI. NoActionBar evita la barra di sistema. -->
+    <style name="Theme.Carburanti" parent="android:Theme.Material.Light.NoActionBar" />
+</resources>

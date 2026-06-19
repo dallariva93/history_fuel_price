@@ -16,3 +16,4 @@ dependencyResolutionManagement {
 
 rootProject.name = "carburanti"
 include(":data")
+include(":app")
