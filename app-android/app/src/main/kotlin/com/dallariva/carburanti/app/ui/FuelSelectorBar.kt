@@ -18,7 +18,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.dallariva.carburanti.app.FUEL_OPTIONS
-import com.dallariva.carburanti.app.SOLO_SELF
+import com.dallariva.carburanti.app.SOLO_SERVITO
 import com.dallariva.carburanti.app.SortBy
 
 /**
@@ -26,8 +26,9 @@ import com.dallariva.carburanti.app.SortBy
  *  1) scelta carburante (chip);
  *  2) modalita self/servito + ordinamento (prezzo / distanza).
  *
- * Per i carburanti solo-self (GPL, Metano) il chip "Servito" e' disabilitato e la modalita
- * resta self. Default applicato dal ViewModel: GPL self, ordinamento per prezzo.
+ * [self] e' la modalita EFFETTIVA da mostrare. Per i carburanti solo-servito (GPL, Metano)
+ * il chip "Self" e' disabilitato e resta selezionato "Servito". Default: self per tutti gli
+ * altri carburanti, ordinamento per prezzo.
  */
 @Composable
 fun FuelSelectorBar(
@@ -38,7 +39,7 @@ fun FuelSelectorBar(
     onSelectMode: (Boolean) -> Unit,
     onSelectSort: (SortBy) -> Unit,
 ) {
-    val soloSelf = carburante in SOLO_SELF
+    val soloServito = carburante in SOLO_SERVITO
 
     Surface(tonalElevation = 2.dp) {
         Column(
@@ -69,12 +70,12 @@ fun FuelSelectorBar(
             ) {
                 FilterChip(
                     selected = self,
+                    enabled = !soloServito,
                     onClick = { onSelectMode(true) },
                     label = { Text("Self") },
                 )
                 FilterChip(
                     selected = !self,
-                    enabled = !soloSelf,
                     onClick = { onSelectMode(false) },
                     label = { Text("Servito") },
                 )

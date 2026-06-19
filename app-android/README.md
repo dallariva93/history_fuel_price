@@ -49,8 +49,9 @@ Argomenti personalizzati:
 
 Il modulo `:app` mostra:
 - **Filtri**: scelta carburante + modalita self/servito + ordinamento per **prezzo** o **distanza**.
-  I carburanti solo-self (GPL, Metano) forzano automaticamente la modalita self.
-- **Lista** dei distributori piu' economici vicini alla posizione attuale (default GPL self),
+  Default self per tutti i carburanti; GPL e Metano (in Italia erogati solo serviti) passano
+  automaticamente a **servito** e disabilitano il chip Self.
+- **Lista** dei distributori piu' economici vicini alla posizione attuale,
   con pallino colorato per prezzo, comune, distanza e data.
 - **Mappa** MapLibre con un marker per distributore, colorato per prezzo (verde = economico,
   rosso = caro) e il pallino della **posizione attuale**. Tap su un marker o su una riga ->

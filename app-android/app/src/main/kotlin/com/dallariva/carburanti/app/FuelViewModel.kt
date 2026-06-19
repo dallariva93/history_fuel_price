@@ -15,8 +15,15 @@ val DEFAULT_LOCATION = 46.0664 to 11.1257
 /** Carburanti selezionabili nella UI (sottostringa passata al repository con LIKE %x%). */
 val FUEL_OPTIONS = listOf("GPL", "Benzina", "Gasolio", "Metano")
 
-/** Carburanti che in Italia esistono solo self-service: per questi forziamo self=true. */
-val SOLO_SELF = setOf("GPL", "Metano")
+/** Carburanti che in Italia sono erogati solo serviti: per questi la modalita e' sempre servito. */
+val SOLO_SERVITO = setOf("GPL", "Metano")
+
+/**
+ * Modalita effettiva usata per query e UI: per i carburanti solo-servito e' sempre servito,
+ * altrimenti rispetta la preferenza dell'utente [self] (default self).
+ */
+fun effectiveSelf(carburante: String, self: Boolean): Boolean =
+    if (carburante in SOLO_SERVITO) false else self
 
 /** Criterio di ordinamento della lista/mappa. */
 enum class SortBy { PREZZO, DISTANZA }
@@ -56,12 +63,13 @@ class FuelViewModel : ViewModel() {
         private set
 
     /**
-     * Cambia carburante/modalita e ricarica con l'ultima posizione nota, se presente.
-     * Per i carburanti solo-self (GPL, Metano) la modalita viene forzata a self.
+     * Cambia carburante e/o preferenza self e ricarica con l'ultima posizione nota, se presente.
+     * La preferenza [self] viene memorizzata cosi' com'e'; per i carburanti solo-servito la
+     * modalita effettiva resta servito (vedi [effectiveSelf]) ma la preferenza non viene persa,
+     * cosi' tornando su Benzina/Gasolio si ripristina self.
      */
     fun selectFuel(carburante: String, self: Boolean) {
-        val effectiveSelf = if (carburante in SOLO_SELF) true else self
-        uiState = uiState.copy(carburante = carburante, self = effectiveSelf)
+        uiState = uiState.copy(carburante = carburante, self = self)
         val la = uiState.lat
         val lo = uiState.lon
         if (la != null && lo != null) refresh(la, lo)
@@ -87,7 +95,7 @@ class FuelViewModel : ViewModel() {
                     lon = lon,
                     raggioKm = uiState.raggioKm,
                     carburante = uiState.carburante,
-                    self = uiState.self,
+                    self = effectiveSelf(uiState.carburante, uiState.self),
                 )
                 uiState = uiState.copy(loading = false, stazioni = sortList(list, uiState.sortBy))
             } catch (e: Exception) {
