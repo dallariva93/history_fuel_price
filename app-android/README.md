@@ -48,10 +48,14 @@ Argomenti personalizzati:
 ## App telefono (STEP C2)
 
 Il modulo `:app` mostra:
-- **Lista** dei distributori piu' economici vicini alla posizione attuale (default GPL self),
+- **Filtri**: scelta carburante + modalita self/servito + ordinamento per **prezzo** o **distanza**.
+  Default self per tutti i carburanti; GPL e Metano (in Italia erogati solo serviti) passano
+  automaticamente a **servito** e disabilitano il chip Self.
+- **Lista** dei distributori piu' economici vicini alla posizione attuale,
   con pallino colorato per prezzo, comune, distanza e data.
 - **Mappa** MapLibre con un marker per distributore, colorato per prezzo (verde = economico,
-  rosso = caro). Tap su un marker o su una riga -> **dettaglio** con il grafico dello storico.
+  rosso = caro) e il pallino della **posizione attuale**. Tap su un marker o su una riga ->
+  **dettaglio** con il grafico dello storico.
 
 La mappa usa di default tile raster **OpenStreetMap** (niente API key). Per cambiare provider
 imposta `MAP_TILES_URL` (template XYZ `{z}/{x}/{y}`) oppure, per uno stile vettoriale completo,

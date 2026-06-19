@@ -1,5 +1,6 @@
 package com.dallariva.carburanti.app.ui
 
+import android.annotation.SuppressLint
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
@@ -18,6 +19,9 @@ import com.google.gson.JsonPrimitive
 import kotlinx.coroutines.suspendCancellableCoroutine
 import org.maplibre.android.camera.CameraUpdateFactory
 import org.maplibre.android.geometry.LatLng
+import org.maplibre.android.location.LocationComponentActivationOptions
+import org.maplibre.android.location.modes.CameraMode
+import org.maplibre.android.location.modes.RenderMode
 import org.maplibre.android.maps.MapLibreMap
 import org.maplibre.android.maps.MapView
 import org.maplibre.android.maps.Style
@@ -73,6 +77,7 @@ fun FuelMap(
                 Style.Builder().fromJson(rasterStyleJson(BuildConfig.MAP_TILES_URL))  // raster OSM, niente API key
         map.setStyle(builder) { style ->
             styleRef.value = style
+            enableMyLocation(context, map, style)
         }
     }
 
@@ -112,6 +117,28 @@ fun FuelMap(
     }
 
     AndroidView(factory = { mapView }, modifier = Modifier.fillMaxSize())
+}
+
+/**
+ * Attiva il pallino "dove sono io" (LocationComponent) sulla mappa, se il permesso di
+ * posizione e' concesso. La camera resta controllata da noi (CameraMode.NONE).
+ */
+@SuppressLint("MissingPermission")
+private fun enableMyLocation(
+    context: android.content.Context,
+    map: MapLibreMap,
+    style: Style,
+) {
+    if (!hasLocationPermission(context)) return
+    val lc = map.locationComponent
+    lc.activateLocationComponent(
+        LocationComponentActivationOptions.builder(context, style)
+            .useDefaultLocationEngine(true)
+            .build()
+    )
+    lc.isLocationComponentEnabled = true
+    lc.cameraMode = CameraMode.NONE
+    lc.renderMode = RenderMode.COMPASS
 }
 
 /** Adatta il callback `getMapAsync` di MapLibre a una funzione suspend. */
