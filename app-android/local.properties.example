@@ -10,5 +10,10 @@ TURSO_DATABASE_URL=libsql://carburanti-xxxx.aws-eu-west-1.turso.io
 # Token Turso di SOLA LETTURA (creato in Fase B)
 TURSO_RO_TOKEN=eyJ...
 
-# Opzionale: stile mappa MapLibre. Default = demotiles (gratuito, senza API key).
-# MAP_STYLE_URL=https://demotiles.maplibre.org/style.json
+# Mappa (opzionale). Di default la mappa usa tile raster OpenStreetMap, senza API key.
+# Per cambiare provider di tile raster XYZ (template {z}/{x}/{y}):
+# MAP_TILES_URL=https://tile.openstreetmap.org/{z}/{x}/{y}.png
+#
+# In alternativa, per uno stile VETTORIALE completo (es. MapTiler con chiave), valorizza
+# MAP_STYLE_URL: se non vuoto ha la precedenza su MAP_TILES_URL.
+# MAP_STYLE_URL=https://api.maptiler.com/maps/streets/style.json?key=LA_TUA_CHIAVE

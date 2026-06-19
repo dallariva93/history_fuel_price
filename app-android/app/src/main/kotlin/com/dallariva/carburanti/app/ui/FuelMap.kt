@@ -66,7 +66,12 @@ fun FuelMap(
     LaunchedEffect(mapView) {
         val map = mapView.awaitMap()
         mapRef.value = map
-        map.setStyle(Style.Builder().fromUri(BuildConfig.MAP_STYLE_URL)) { style ->
+        val builder =
+            if (BuildConfig.MAP_STYLE_URL.isNotBlank())
+                Style.Builder().fromUri(BuildConfig.MAP_STYLE_URL)      // stile vettoriale esterno (opzionale)
+            else
+                Style.Builder().fromJson(rasterStyleJson(BuildConfig.MAP_TILES_URL))  // raster OSM, niente API key
+        map.setStyle(builder) { style ->
             styleRef.value = style
         }
     }
@@ -114,3 +119,25 @@ private suspend fun MapView.awaitMap(): MapLibreMap =
     suspendCancellableCoroutine { cont ->
         getMapAsync { map -> cont.resume(map) }
     }
+
+/**
+ * Stile MapLibre minimale costruito da una sorgente raster (tile XYZ).
+ * Mostra strade/citta' reali senza bisogno di API key (default: tile OpenStreetMap).
+ * [tilesUrl] e' un template con i placeholder {z}/{x}/{y}.
+ */
+private fun rasterStyleJson(tilesUrl: String): String = """
+{
+  "version": 8,
+  "sources": {
+    "raster-tiles": {
+      "type": "raster",
+      "tiles": ["$tilesUrl"],
+      "tileSize": 256,
+      "attribution": "© OpenStreetMap contributors"
+    }
+  },
+  "layers": [
+    { "id": "raster-tiles", "type": "raster", "source": "raster-tiles" }
+  ]
+}
+""".trimIndent()
