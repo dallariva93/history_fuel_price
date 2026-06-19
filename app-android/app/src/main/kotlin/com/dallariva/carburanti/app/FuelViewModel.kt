@@ -15,11 +15,18 @@ val DEFAULT_LOCATION = 46.0664 to 11.1257
 /** Carburanti selezionabili nella UI (sottostringa passata al repository con LIKE %x%). */
 val FUEL_OPTIONS = listOf("GPL", "Benzina", "Gasolio", "Metano")
 
+/** Carburanti che in Italia esistono solo self-service: per questi forziamo self=true. */
+val SOLO_SELF = setOf("GPL", "Metano")
+
+/** Criterio di ordinamento della lista/mappa. */
+enum class SortBy { PREZZO, DISTANZA }
+
 /** Stato della schermata principale (lista + mappa). */
 data class HomeUiState(
     val carburante: String = "GPL",
     val self: Boolean = true,
     val raggioKm: Double = 10.0,
+    val sortBy: SortBy = SortBy.PREZZO,
     val lat: Double? = null,
     val lon: Double? = null,
     val loading: Boolean = false,
@@ -48,12 +55,26 @@ class FuelViewModel : ViewModel() {
     var historyState by mutableStateOf(HistoryUiState())
         private set
 
-    /** Cambia carburante/modalita e ricarica con l'ultima posizione nota, se presente. */
+    /**
+     * Cambia carburante/modalita e ricarica con l'ultima posizione nota, se presente.
+     * Per i carburanti solo-self (GPL, Metano) la modalita viene forzata a self.
+     */
     fun selectFuel(carburante: String, self: Boolean) {
-        uiState = uiState.copy(carburante = carburante, self = self)
+        val effectiveSelf = if (carburante in SOLO_SELF) true else self
+        uiState = uiState.copy(carburante = carburante, self = effectiveSelf)
         val la = uiState.lat
         val lo = uiState.lon
         if (la != null && lo != null) refresh(la, lo)
+    }
+
+    /** Cambia il criterio di ordinamento riordinando la lista gia' caricata (niente refetch). */
+    fun setSort(sort: SortBy) {
+        uiState = uiState.copy(sortBy = sort, stazioni = sortList(uiState.stazioni, sort))
+    }
+
+    private fun sortList(list: List<DistributoreConPrezzo>, sort: SortBy) = when (sort) {
+        SortBy.PREZZO -> list.sortedBy { it.prezzo.prezzo }
+        SortBy.DISTANZA -> list.sortedBy { it.distanzaKm }
     }
 
     /** Carica i distributori piu' economici intorno a ([lat], [lon]). */
@@ -68,7 +89,7 @@ class FuelViewModel : ViewModel() {
                     carburante = uiState.carburante,
                     self = uiState.self,
                 )
-                uiState = uiState.copy(loading = false, stazioni = list)
+                uiState = uiState.copy(loading = false, stazioni = sortList(list, uiState.sortBy))
             } catch (e: Exception) {
                 uiState = uiState.copy(loading = false, error = e.message ?: "Errore di rete")
             }

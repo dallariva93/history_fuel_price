@@ -64,7 +64,10 @@ fun HomeScreen(
             FuelSelectorBar(
                 carburante = state.carburante,
                 self = state.self,
-                onSelect = { fuel, self -> vm.selectFuel(fuel, self) },
+                sortBy = state.sortBy,
+                onSelectFuel = { fuel -> vm.selectFuel(fuel, state.self) },
+                onSelectMode = { selfMode -> vm.selectFuel(state.carburante, selfMode) },
+                onSelectSort = { sort -> vm.setSort(sort) },
             )
         }
     ) { padding ->
