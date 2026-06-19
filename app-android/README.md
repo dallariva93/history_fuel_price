@@ -6,7 +6,8 @@ Progetto multi-modulo per l'app Android che legge i prezzi carburante da Turso.
 
 - `:data` — modelli e Repository (lettura da Turso). Kotlin/JVM puro con `HttpFuelRepository`.
 - `:app` — UI telefono (Compose): lista + mappa MapLibre + dettaglio con grafico storico.
-- `:car` — superficie Android Auto (Car App Library). Da aggiungere nello STEP C3.
+- `:car` — superficie Android Auto (Car App Library, categoria POI): `PlaceListMapTemplate` con i
+  distributori piu' economici vicini + refresh. Riusa il Repository di `:data`.
 
 ## Strategia data layer
 
@@ -92,3 +93,37 @@ cp local.properties.example local.properties
 
 Verifica accettazione: lista e mappa popolate con dati reali da Turso; tap su un distributore
 apre il dettaglio con la serie storica.
+
+## Android Auto (STEP C3 — modulo `:car`)
+
+Il modulo `:car` e' una **android library** fusa nell'APK di `:app`: dichiara nel manifest il
+`FuelCarAppService` (categoria POI), il permesso `androidx.car.app.MAP_TEMPLATES` e i meta-data
+richiesti da Android Auto (`minCarApiLevel`, `automotive_app_desc.xml`). La `NearbyFuelScreen` usa
+`PlaceListMapTemplate` per mostrare i distributori piu' economici vicini (nome, prezzo, comune,
+distanza) con marker e pulsante di refresh. Riusa lo stesso `FuelRepository` di `:data`.
+
+Default: GPL (servito), 10 km. Nessun grafico/UI custom (vincoli categoria POI).
+
+### Provare nel DHU (Desktop Head Unit)
+
+1. **Android Studio > SDK Manager > SDK Tools**: installa **Android Auto Desktop Head Unit
+   Emulator** (finisce in `SDK_LOCATION/extras/google/auto/`).
+2. Sul telefono: installa l'app (`./gradlew :app:installDebug`) e l'app **Android Auto** dal Play
+   Store; in Android Auto abilita la **modalita' sviluppatore** (Impostazioni > tocca "Versione" 10
+   volte), poi dal menu overflow scegli **Avvia server head unit**. In "Auto connesse in
+   precedenza" verifica che l'aggiunta di nuove auto sia abilitata.
+3. Collega il telefono via USB e inoltra la porta:
+   ```
+   adb forward tcp:5277 tcp:5277
+   ```
+4. Avvia il DHU da `SDK_LOCATION/extras/google/auto/`:
+   ```
+   ./desktop-head-unit          # Linux/macOS
+   desktop-head-unit.exe        # Windows
+   ```
+   Sblocca il telefono e accetta i termini al primo collegamento.
+5. Nel DHU apri l'app dalla griglia: deve comparire la lista dei distributori piu' economici (dati
+   reali da Turso) con i marker sulla mappa; il **refresh** ricarica.
+
+Nota: il sideload basta per il **telefono**, ma per far girare la superficie auto sullo schermo di
+un'auto **vera** serve pubblicare su una traccia di test interno del Play Store (STEP C4).

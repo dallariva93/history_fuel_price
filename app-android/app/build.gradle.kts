@@ -64,6 +64,7 @@ android {
 
 dependencies {
     implementation(project(":data"))
+    implementation(project(":car"))
 
     implementation("androidx.core:core-ktx:1.13.1")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.8.1")
