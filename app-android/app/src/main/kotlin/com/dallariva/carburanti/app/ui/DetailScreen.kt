@@ -19,6 +19,9 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.dallariva.carburanti.app.FuelViewModel
+import java.time.LocalDate
+
+private const val HISTORY_WINDOW_DAYS = 30
 
 /**
  * Dettaglio impianto: header (nome, comune, ultimo prezzo) + grafico dello storico.
@@ -68,18 +71,30 @@ fun DetailScreen(
                 )
             }
 
-            Text("Andamento storico", style = MaterialTheme.typography.titleSmall)
+            Text(
+                "Andamento storico (ultimi $HISTORY_WINDOW_DAYS giorni)",
+                style = MaterialTheme.typography.titleSmall,
+            )
 
             when {
                 history.loading -> Text("Caricamento storico…")
                 history.error != null -> Text("Errore: ${history.error}")
                 else -> {
-                    PriceChart(prezzi = history.prezzi, modifier = Modifier.fillMaxWidth())
-                    if (history.prezzi.isNotEmpty()) {
-                        val values = history.prezzi.map { it.prezzo }
+                    val today = LocalDate.now()
+                    val serie = forwardFill(history.prezzi, HISTORY_WINDOW_DAYS, today)
+                    PriceChart(punti = serie, modifier = Modifier.fillMaxWidth())
+                    if (serie.isNotEmpty()) {
+                        val values = serie.map { it.prezzo }
+                        val windowStart = today.minusDays((HISTORY_WINDOW_DAYS - 1).toLong())
+                        val variazioniInFinestra = history.prezzi.count { p ->
+                            val iso = p.dtComu.take(10)
+                            runCatching { LocalDate.parse(iso) }
+                                .map { !it.isBefore(windowStart) && !it.isAfter(today) }
+                                .getOrDefault(false)
+                        }
                         Text(
-                            "min %.3f € • max %.3f € • %d rilevazioni"
-                                .format(values.min(), values.max(), values.size),
+                            "min %.3f € • max %.3f € • %d variazioni in finestra"
+                                .format(values.min(), values.max(), variazioniInFinestra),
                             style = MaterialTheme.typography.labelMedium,
                         )
                     }

@@ -12,26 +12,25 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
-import com.dallariva.carburanti.data.Prezzo
 
 /**
  * Grafico a linea spezzata dell'andamento prezzo. Disegnato a mano su Canvas: niente librerie
- * esterne (MVP). I punti seguono l'ordine cronologico della serie [prezzi].
+ * esterne (MVP). I punti sono campioni giornalieri gia' forward-fillati (vedi [forwardFill]).
  */
 @Composable
 fun PriceChart(
-    prezzi: List<Prezzo>,
+    punti: List<PricePoint>,
     modifier: Modifier = Modifier,
     lineColor: Color = MaterialTheme.colorScheme.primary,
 ) {
-    if (prezzi.size < 2) {
+    if (punti.size < 2) {
         Box(modifier.fillMaxWidth().height(180.dp), contentAlignment = Alignment.Center) {
             Text("Dati storici insufficienti per il grafico.")
         }
         return
     }
 
-    val values = prezzi.map { it.prezzo }
+    val values = punti.map { it.prezzo }
     val minV = values.min()
     val maxV = values.max()
     val range = (maxV - minV).takeIf { it > 0.0 } ?: 1.0
@@ -39,9 +38,9 @@ fun PriceChart(
     Canvas(modifier = modifier.fillMaxWidth().height(180.dp)) {
         val w = size.width
         val h = size.height
-        val n = prezzi.size
+        val n = punti.size
 
-        val points = prezzi.mapIndexed { i, p ->
+        val points = punti.mapIndexed { i, p ->
             val x = if (n == 1) 0f else w * i / (n - 1)
             val y = (h - h * ((p.prezzo - minV) / range)).toFloat()
             Offset(x, y)
